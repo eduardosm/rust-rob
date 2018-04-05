@@ -1,0 +1,9 @@
+[package]
+name = "rob"
+version = "0.1.0"
+authors = ["Eduardo Sánchez Muñoz <esm@eduardosm.net>"]
+description = "Reference-or-box, with similar functionality to Cow"
+repository = "https://github.com/eduardosm/rust-rob"
+license = "MIT/Apache-2.0"
+
+[dependencies]
