@@ -31,6 +31,16 @@ pub struct Rob<'a, T: 'a + ?Sized> {
     marker2: PhantomData<T>,
 }
 
+unsafe impl<'a, T: 'a + ?Sized> Send for Rob<'a, T>
+where
+    T: Send + Sync
+{}
+
+unsafe impl<'a, T: 'a + ?Sized> Sync for Rob<'a, T>
+where
+    T: Sync
+{}
+
 impl<'a, T: 'a + ?Sized> Drop for Rob<'a, T> {
     fn drop(&mut self) {
         if self.is_owned {
