@@ -15,13 +15,13 @@
 //! the value by accessing directly the pointer, without the overhead
 //! of matching an enum needed by `Cow`.
 
-#[cfg(test)]
-mod tests;
-
-use std::ptr::NonNull;
-use std::marker::PhantomData;
 use std::fmt::Debug;
 use std::hash::{Hash, Hasher};
+use std::marker::PhantomData;
+use std::ptr::NonNull;
+
+#[cfg(test)]
+mod tests;
 
 /// The `Rob` type. See the crate documentation.
 pub struct Rob<'a, T: 'a + ?Sized> {
@@ -31,15 +31,8 @@ pub struct Rob<'a, T: 'a + ?Sized> {
     marker2: PhantomData<T>,
 }
 
-unsafe impl<'a, T: 'a + ?Sized> Send for Rob<'a, T>
-where
-    T: Send + Sync
-{}
-
-unsafe impl<'a, T: 'a + ?Sized> Sync for Rob<'a, T>
-where
-    T: Sync
-{}
+unsafe impl<'a, T: 'a + ?Sized + Send + Sync> Send for Rob<'a, T> {}
+unsafe impl<'a, T: 'a + ?Sized + Sync> Sync for Rob<'a, T> {}
 
 impl<'a, T: 'a + ?Sized> Drop for Rob<'a, T> {
     fn drop(&mut self) {
@@ -87,7 +80,7 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
             marker2: PhantomData,
         }
     }
-    
+
     /// Creates a new `Rob` with an owned value that is already boxed.
     ///
     /// Example
@@ -106,7 +99,7 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
             marker2: PhantomData,
         }
     }
-    
+
     /// Creates a new `Rob` from a raw pointer and an owned flag. If
     /// `is_owned` is `true`, `ptr` should come from `Box::into_raw`.
     #[inline]
@@ -118,7 +111,7 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
             marker2: PhantomData,
         }
     }
-    
+
     /// Consumes `this`, returning a raw pointer to the value and a
     /// flag indicating whether the values is owned or not.
     #[inline]
@@ -128,7 +121,7 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
         std::mem::forget(this);
         (ptr, is_owned)
     }
-    
+
     /// If the value is not owned, returns a reference to it with
     /// lifetime `'a`.
     #[inline]
@@ -139,7 +132,7 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
             None
         }
     }
-    
+
     /// Returns whether the value is owned or not.
     #[inline]
     pub const fn is_owned(this: &Self) -> bool {
@@ -148,8 +141,9 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
 }
 
 impl<'a, T: 'a + ?Sized> Rob<'a, T>
-    where T: std::borrow::ToOwned,
-          <T as std::borrow::ToOwned>::Owned: Into<Box<T>>
+where
+    T: std::borrow::ToOwned,
+    <T as std::borrow::ToOwned>::Owned: Into<Box<T>>,
 {
     /// Consumes `this`, returning a `Box` containing the value, cloning
     /// it if it was not owned.
@@ -162,7 +156,7 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T>
             this.to_owned().into()
         }
     }
-    
+
     /// Returns a mutable reference to the value, cloning it if it was
     /// not owned.
     pub fn to_mut(this: &mut Self) -> &mut T {
@@ -172,7 +166,7 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T>
                 this.ptr = NonNull::new_unchecked(Box::into_raw(b));
                 this.is_owned = true;
             }
-            
+
             &mut *this.ptr.as_mut()
         }
     }
@@ -235,8 +229,9 @@ impl<'a> From<std::path::PathBuf> for Rob<'a, std::path::Path> {
 }
 
 impl<'a, T> From<std::borrow::Cow<'a, T>> for Rob<'a, T>
-    where T: std::borrow::ToOwned,
-          <T as std::borrow::ToOwned>::Owned: Into<Box<T>>,
+where
+    T: std::borrow::ToOwned,
+    <T as std::borrow::ToOwned>::Owned: Into<Box<T>>,
 {
     fn from(cow: std::borrow::Cow<'a, T>) -> Self {
         match cow {
@@ -251,9 +246,7 @@ impl<'a, T: 'a + Clone> Clone for Rob<'a, T> {
         if self.is_owned {
             Self::from_value((**self).clone())
         } else {
-            unsafe {
-                Self::from_ref(&*self.ptr.as_ptr())
-            }
+            unsafe { Self::from_ref(&*self.ptr.as_ptr()) }
         }
     }
 }
@@ -275,7 +268,7 @@ impl<'a, T: 'a + ?Sized + PartialEq> PartialEq for Rob<'a, T> {
     fn eq(&self, other: &Rob<'a, T>) -> bool {
         <T as PartialEq>::eq(&**self, &**other)
     }
-    
+
     #[inline]
     fn ne(&self, other: &Rob<'a, T>) -> bool {
         <T as PartialEq>::ne(&**self, &**other)
@@ -287,22 +280,22 @@ impl<'a, T: 'a + ?Sized + PartialOrd> PartialOrd for Rob<'a, T> {
     fn partial_cmp(&self, other: &Rob<'a, T>) -> Option<std::cmp::Ordering> {
         <T as PartialOrd>::partial_cmp(&**self, &**other)
     }
-    
+
     #[inline]
     fn lt(&self, other: &Rob<'a, T>) -> bool {
         <T as PartialOrd>::lt(&**self, &**other)
     }
-    
+
     #[inline]
     fn le(&self, other: &Rob<'a, T>) -> bool {
         <T as PartialOrd>::le(&**self, &**other)
     }
-    
+
     #[inline]
     fn ge(&self, other: &Rob<'a, T>) -> bool {
         <T as PartialOrd>::ge(&**self, &**other)
     }
-    
+
     #[inline]
     fn gt(&self, other: &Rob<'a, T>) -> bool {
         <T as PartialOrd>::gt(&**self, &**other)
@@ -311,7 +304,7 @@ impl<'a, T: 'a + ?Sized + PartialOrd> PartialOrd for Rob<'a, T> {
 
 impl<'a, T: 'a + ?Sized> std::ops::Deref for Rob<'a, T> {
     type Target = T;
-    
+
     #[inline]
     fn deref(&self) -> &T {
         unsafe { &*self.ptr.as_ptr() }
