@@ -101,9 +101,9 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
     }
 
     /// Creates a new `Rob` from a raw pointer and an owned flag.
-    /// 
+    ///
     /// # Safety
-    /// 
+    ///
     /// `ptr` must be a valid (non-null, aligned...) pointer. If `is_owned`
     /// is true, `ptr` must come from `Box::into_raw`. If `is_owned` is
     /// false, the returned `Rob` must not outlive the pointed value.
