@@ -45,8 +45,8 @@ impl<'a, T: 'a + ?Sized> Drop for Rob<'a, T> {
 impl<'a, T: 'a> Rob<'a, T> {
     /// Creates a new `Rob` with an owned value.
     ///
-    /// Example
-    /// -------
+    /// # Example
+    ///
     /// ```
     /// let x = rob::Rob::from_value(123i32);
     /// assert_eq!(*x, 123);
@@ -61,8 +61,8 @@ impl<'a, T: 'a> Rob<'a, T> {
 impl<'a, T: 'a + ?Sized> Rob<'a, T> {
     /// Creates a new `Rob` with a borrowed reference.
     ///
-    /// Example
-    /// -------
+    /// # Example
+    ///
     /// ```
     /// let value = 123i32;
     /// let x = rob::Rob::from_ref(&value);
@@ -83,8 +83,8 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
 
     /// Creates a new `Rob` with an owned value that is already boxed.
     ///
-    /// Example
-    /// -------
+    /// # Example
+    ///
     /// ```
     /// let x = rob::Rob::from_box(Box::new(123i32));
     /// assert_eq!(*x, 123);
