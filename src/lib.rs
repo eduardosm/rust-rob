@@ -14,6 +14,10 @@
 //! indicates whether the value is owned or not. This allows to use
 //! the value by accessing directly the pointer, without the overhead
 //! of matching an enum needed by `Cow`.
+//!
+//! # Minimum Rust version
+//!
+//! The minimum Rust version required by this crate is 1.33.
 
 use std::fmt::Debug;
 use std::hash::{Hash, Hasher};
