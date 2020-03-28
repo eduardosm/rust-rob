@@ -1,8 +1,6 @@
 os: linux
 language: rust
-cache: cargo
 rust:
-  - 1.33.0
   - stable
   - beta
   - nightly
@@ -10,11 +8,19 @@ jobs:
   allow_failures:
     - rust: nightly
   fast_finish: true
-
+  include:
+    # Minimal version (skip clippy)
+    - rust: 1.33.0
+      before_script:
+        - rustup component add rustfmt
+      script:
+        - cargo build --verbose --all-targets
+        - cargo test --verbose
+        - cargo fmt -- --check
+ 
 before_script:
   - rustup component add clippy
   - rustup component add rustfmt
-
 script:
   - cargo build --verbose --all-targets
   - cargo clippy --verbose --all-targets -- -D warnings
