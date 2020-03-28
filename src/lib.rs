@@ -100,13 +100,18 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
         }
     }
 
-    /// Creates a new `Rob` from a raw pointer and an owned flag. If
-    /// `is_owned` is `true`, `ptr` should come from `Box::into_raw`.
+    /// Creates a new `Rob` from a raw pointer and an owned flag.
+    /// 
+    /// # Safety
+    /// 
+    /// `ptr` must be a valid (non-null, aligned...) pointer. If `is_owned`
+    /// is true, `ptr` must come from `Box::into_raw`. If `is_owned` is
+    /// false, the returned `Rob` must not outlive the pointed value.
     #[inline]
     pub const unsafe fn from_raw(ptr: *mut T, is_owned: bool) -> Self {
         Self {
             ptr: NonNull::new_unchecked(ptr),
-            is_owned: is_owned,
+            is_owned,
             marker1: PhantomData,
             marker2: PhantomData,
         }
@@ -267,11 +272,6 @@ impl<'a, T: 'a + ?Sized + PartialEq> PartialEq for Rob<'a, T> {
     #[inline]
     fn eq(&self, other: &Rob<'a, T>) -> bool {
         <T as PartialEq>::eq(&**self, &**other)
-    }
-
-    #[inline]
-    fn ne(&self, other: &Rob<'a, T>) -> bool {
-        <T as PartialEq>::ne(&**self, &**other)
     }
 }
 
