@@ -67,9 +67,11 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
     /// assert!(!rob::Rob::is_owned(&x));
     /// ```
     #[inline]
-    pub fn from_ref(r: &'a T) -> Self {
+    pub const fn from_ref(r: &'a T) -> Self {
         Self {
-            ptr: NonNull::from(r),
+            // This is equivalent to `NonNull::from(r)`, which can't be used
+            // in `const fn`.
+            ptr: unsafe { NonNull::new_unchecked(r as *const _ as *mut _) },
             is_owned: false,
             marker1: PhantomData,
             marker2: PhantomData,
@@ -98,7 +100,7 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
     /// Creates a new `Rob` from a raw pointer and an owned flag. If
     /// `is_owned` is `true`, `ptr` should come from `Box::into_raw`.
     #[inline]
-    pub unsafe fn from_raw(ptr: *mut T, is_owned: bool) -> Self {
+    pub const unsafe fn from_raw(ptr: *mut T, is_owned: bool) -> Self {
         Self {
             ptr: NonNull::new_unchecked(ptr),
             is_owned: is_owned,
@@ -130,7 +132,7 @@ impl<'a, T: 'a + ?Sized> Rob<'a, T> {
     
     /// Returns whether the value is owned or not.
     #[inline]
-    pub fn is_owned(this: &Self) -> bool {
+    pub const fn is_owned(this: &Self) -> bool {
         this.is_owned
     }
 }
